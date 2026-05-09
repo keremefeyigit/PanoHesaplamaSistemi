@@ -16,7 +16,7 @@ SECRET_KEY = "tabela-super-secret-change-in-production-32chars!!"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 8   # 8 saat
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["md5_crypt"], deprecated="auto")
 
 
 def verify_password(plain: str, hashed: str) -> bool:
