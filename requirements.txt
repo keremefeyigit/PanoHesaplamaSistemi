@@ -1,0 +1,34 @@
+# Akıllı Tabela Ölçüm Sistemi — Python Bağımlılıkları
+#
+# Kurulum:
+#   pip install -r requirements.txt
+#
+# Jetson Orin için:
+#   YOLO TensorRT modeli için: pip install ultralytics[export]
+#   PyTorch: Jetson'a özel JetPack wheel'i kullanın (NVIDIA Developer sayfası)
+
+# ─── Temel Görüntü İşleme ─────────────────────────────────────────────────────
+opencv-python-headless>=4.9.0
+numpy>=1.24.0
+
+# ─── Yapay Zeka / Nesne Tespiti ──────────────────────────────────────────────
+ultralytics>=8.2.0             # YOLOv8 / YOLOv10 (PyTorch gerektirir)
+
+# ─── Veritabanı ───────────────────────────────────────────────────────────────
+asyncpg>=0.29.0                # Async PostgreSQL sürücüsü
+redis[hiredis]>=5.0.0          # Redis (hiredis = C tabanlı hızlandırıcı)
+
+# ─── GPS / Seri Port ──────────────────────────────────────────────────────────
+pyserial>=3.5                  # GPS NMEA okuma (seri port)
+pynmea2>=1.19.0                # NMEA cümle ayrıştırıcı
+
+# ─── Coğrafi Hesaplamalar ────────────────────────────────────────────────────
+pyproj>=3.6.0                  # Projeksiyon dönüşümleri (opsiyonel, gelişmiş için)
+
+# ─── Test ─────────────────────────────────────────────────────────────────────
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
+
+# ─── Geliştirme / Görselleştirme (opsiyonel) ─────────────────────────────────
+folium>=0.16.0                 # HTML tabanlı harita görselleştirme
+matplotlib>=3.8.0              # Grafik ve analiz
