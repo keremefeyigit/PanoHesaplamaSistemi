@@ -1,8 +1,50 @@
 [AKILLI_TABELA_SISTEM_DOKUMANI.md](https://github.com/user-attachments/files/27552872/AKILLI_TABELA_SISTEM_DOKUMANI.md)
 
 # PanoHesaplamaSistemi
- Kentsel reklam alanlarının yönetiminde dijital dönüşüm: Belediye ve kamu kurumları için reklam panosu boyutlarını milimetrik hassasiyetle hesaplayan, koordinat takibini otomatize eden OpenCV ve Yapay Zeka destekli yenilikçi analiz ekosistemi.
- 
+Kentsel reklam alanlarının yönetiminde dijital dönüşüm: Belediye ve kamu kurumları için reklam panosu boyutlarını milimetrik hassasiyetle hesaplayan, koordinat takibini otomatize eden OpenCV ve Yapay Zeka destekli yenilikçi analiz ekosistemi.
+
+---
+
+## ⚡ Geliştirici Hızlı Başlangıç
+
+> **Not:** Linux/macOS'ta scriptler `./` prefix'i ile çalıştırılmalıdır.
+
+### 1. İlk Kurulum (tek seferlik)
+
+```bash
+chmod +x setup_dev.sh run_tests.sh run_local.sh
+./setup_dev.sh --minimal   # hızlı kurulum (test + demo için yeterli)
+./setup_dev.sh             # tam kurulum (ultralytics + opencv)
+```
+
+### 2. Testleri Çalıştır
+
+```bash
+./run_tests.sh             # tüm birim testleri (30 test, hızlı)
+./run_tests.sh -k distance # sadece mesafe testleri
+```
+
+### 3. Sistemi Localde Çalıştır
+
+```bash
+./run_local.sh demo        # formül demo — D=f×B/d, W=W_px×Z/f (donanım yok)
+./run_local.sh simulate    # mesafe + GPS simülasyonu tablosu
+./run_local.sh yolo        # YOLOv8 ile gerçek tespit dene
+./run_local.sh pipeline    # tam pipeline, DB olmadan (50 kare)
+./run_local.sh pipeline 200  # 200 kare işle
+./run_local.sh             # etkileşimli menü
+```
+
+#### Docker ile tam sistem (PostgreSQL + Redis):
+```bash
+./run_local.sh db-up       # Docker ile PG + Redis başlat
+./run_local.sh pipeline-db # pipeline + DB birlikte çalıştır
+./run_local.sh db-down     # servisleri durdur
+```
+
+---
+
+
 # Akıllı Tabela Ölçüm ve Tespit Sistemi - Teknik Sistem Dökümanı
 
 ## 1. Giriş

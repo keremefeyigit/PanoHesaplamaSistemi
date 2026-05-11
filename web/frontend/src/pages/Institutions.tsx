@@ -1,33 +1,58 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface Institution {
   id: number;
   name: string;
   files: number;
   status: string;
+  contactInfo?: string;
+  renewalDate?: string;
 }
 
-const Institutions = () => {
-  const [institutions, setInstitutions] = useState<Institution[]>([
-    { id: 1, name: 'Ankara Büyükşehir Belediyesi', files: 45, status: 'Aktif' },
-    { id: 2, name: 'İstanbul Reklam A.Ş.', files: 128, status: 'Aktif' },
-    { id: 3, name: 'Kızılay Derneği', files: 12, status: 'Beklemede' },
-  ]);
+const defaultInstitutions: Institution[] = [
+  { id: 1, name: 'Ankara Büyükşehir Belediyesi', files: 45, status: 'Aktif', contactInfo: 'info@ankara.bel.tr', renewalDate: '2027-01-01' },
+  { id: 2, name: 'İstanbul Reklam A.Ş.', files: 128, status: 'Aktif', contactInfo: 'iletisim@reklam.ist', renewalDate: '2026-12-31' },
+  { id: 3, name: 'Kızılay Derneği', files: 12, status: 'Beklemede', contactInfo: 'iletisim@kizilay.org.tr', renewalDate: '2026-08-15' },
+];
 
-  const [showModal, setShowModal] = useState(false);
+const Institutions = () => {
+  const [institutions, setInstitutions] = useState<Institution[]>(() => {
+    const saved = localStorage.getItem('institutionsData');
+    if (saved) {
+      return JSON.parse(saved);
+    }
+    return defaultInstitutions;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('institutionsData', JSON.stringify(institutions));
+  }, [institutions]);
+
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  
+  // Form States
   const [newName, setNewName] = useState('');
+  const [newContactInfo, setNewContactInfo] = useState('');
+  const [newRenewalDate, setNewRenewalDate] = useState('');
+  
+  const [selectedInst, setSelectedInst] = useState<Institution | null>(null);
 
   const handleAdd = () => {
     if (!newName) return;
-    const newInst = {
+    const newInst: Institution = {
       id: Date.now(),
       name: newName,
       files: 0,
-      status: 'Aktif'
+      status: 'Aktif',
+      contactInfo: newContactInfo,
+      renewalDate: newRenewalDate,
     };
     setInstitutions([...institutions, newInst]);
     setNewName('');
-    setShowModal(false);
+    setNewContactInfo('');
+    setNewRenewalDate('');
+    setShowAddModal(false);
   };
 
   const handleDelete = (id: number) => {
@@ -36,12 +61,20 @@ const Institutions = () => {
     }
   };
 
-  const handleView = (name: string) => {
-    alert(`${name} kurumuna ait veriler yükleniyor...`);
-  };
-
   const handleShare = (name: string) => {
     alert(`${name} verileri için paylaşım linki oluşturuldu.`);
+  };
+
+  const openViewModal = (inst: Institution) => {
+    setSelectedInst(inst);
+    setShowViewModal(true);
+  };
+
+  const handleUpdate = () => {
+    if (selectedInst) {
+      setInstitutions(institutions.map(inst => inst.id === selectedInst.id ? selectedInst : inst));
+      setShowViewModal(false);
+    }
   };
 
   return (
@@ -49,7 +82,7 @@ const Institutions = () => {
       <div className="card">
         <div className="header-actions">
           <h3>Kayıtlı Kurumlar</h3>
-          <button className="primary" onClick={() => setShowModal(true)}>+ Yeni Kurum Ekle</button>
+          <button className="primary" onClick={() => setShowAddModal(true)}>+ Yeni Kurum Ekle</button>
         </div>
         
         <table className="inst-table">
@@ -72,7 +105,7 @@ const Institutions = () => {
                   </span>
                 </td>
                 <td>
-                  <button className="action-btn view" onClick={() => handleView(inst.name)}>Görüntüle</button>
+                  <button className="action-btn view" onClick={() => openViewModal(inst)}>Görüntüle</button>
                   <button className="action-btn share" onClick={() => handleShare(inst.name)}>Paylaş</button>
                   <button className="action-btn delete" onClick={() => handleDelete(inst.id)}>Sil</button>
                 </td>
@@ -82,20 +115,57 @@ const Institutions = () => {
         </table>
       </div>
 
-      {showModal && (
+      {showAddModal && (
         <div className="modal-overlay">
           <div className="card modal-content">
             <h4>Yeni Kurum Ekle</h4>
-            <input 
-              type="text" 
-              placeholder="Kurum Adı" 
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              className="modal-input"
-            />
+            <div className="input-group">
+              <label>Kurum Adı</label>
+              <input type="text" placeholder="Kurum Adı" value={newName} onChange={(e) => setNewName(e.target.value)} className="modal-input" />
+            </div>
+            <div className="input-group">
+              <label>Kişisel/Kurumsal Bilgiler (E-posta, Tel vs.)</label>
+              <input type="text" placeholder="İletişim Bilgileri" value={newContactInfo} onChange={(e) => setNewContactInfo(e.target.value)} className="modal-input" />
+            </div>
+            <div className="input-group">
+              <label>Abonelik Yenileme Tarihi</label>
+              <input type="date" value={newRenewalDate} onChange={(e) => setNewRenewalDate(e.target.value)} className="modal-input" />
+            </div>
             <div className="modal-actions">
-              <button onClick={() => setShowModal(false)}>İptal</button>
+              <button onClick={() => setShowAddModal(false)}>İptal</button>
               <button className="primary" onClick={handleAdd}>Ekle</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showViewModal && selectedInst && (
+        <div className="modal-overlay">
+          <div className="card modal-content">
+            <h4>Kurum Detayları</h4>
+            <div className="input-group">
+              <label>Kurum Adı</label>
+              <input type="text" value={selectedInst.name} onChange={(e) => setSelectedInst({...selectedInst, name: e.target.value})} className="modal-input" />
+            </div>
+            <div className="input-group">
+              <label>Kişisel/Kurumsal Bilgiler (E-posta, Tel vs.)</label>
+              <input type="text" value={selectedInst.contactInfo || ''} onChange={(e) => setSelectedInst({...selectedInst, contactInfo: e.target.value})} className="modal-input" />
+            </div>
+            <div className="input-group">
+              <label>Abonelik Yenileme Tarihi</label>
+              <input type="date" value={selectedInst.renewalDate || ''} onChange={(e) => setSelectedInst({...selectedInst, renewalDate: e.target.value})} className="modal-input" />
+            </div>
+            <div className="input-group">
+              <label>Durum</label>
+              <select value={selectedInst.status} onChange={(e) => setSelectedInst({...selectedInst, status: e.target.value})} className="modal-input">
+                <option value="Aktif">Aktif</option>
+                <option value="Beklemede">Beklemede</option>
+                <option value="Pasif">Pasif</option>
+              </select>
+            </div>
+            <div className="modal-actions">
+              <button onClick={() => setShowViewModal(false)}>Kapat</button>
+              <button className="primary" onClick={handleUpdate}>Kaydet</button>
             </div>
           </div>
         </div>
@@ -136,6 +206,10 @@ const Institutions = () => {
           background: #fef3c7;
           color: #92400e;
         }
+        .status-pill.pasif {
+          background: #fee2e2;
+          color: #991b1b;
+        }
         .action-btn {
           margin-right: 0.5rem;
           font-size: 0.875rem;
@@ -162,19 +236,32 @@ const Institutions = () => {
           z-index: 1000;
         }
         .modal-content {
-          width: 400px;
+          width: 450px;
+          max-height: 90vh;
+          overflow-y: auto;
+        }
+        .input-group {
+          margin: 1rem 0;
+        }
+        .input-group label {
+          display: block;
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: #475569;
+          margin-bottom: 0.5rem;
         }
         .modal-input {
           width: 100%;
           padding: 0.75rem;
-          margin: 1rem 0;
-          border: 1px solid #e2e8f0;
+          border: 1px solid #cbd5e1;
           border-radius: 0.375rem;
+          background: #f8fafc;
         }
         .modal-actions {
           display: flex;
           justify-content: flex-end;
           gap: 0.5rem;
+          margin-top: 1.5rem;
         }
       `}</style>
     </div>
