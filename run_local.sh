@@ -257,6 +257,50 @@ run_pipeline_db() {
     echo -e "${GREEN}✓ Temizlik tamamlandı${NC}"
 }
 
+# ── Mod: Sunucular (Frontend & Backend) ──────────────────────────────────────
+run_servers() {
+    echo -e "${CYAN}${BOLD}▶ Frontend ve Backend Sunucuları Başlatılıyor...${NC}"
+    echo "─────────────────────────────────────────────────────"
+    
+    # npm yüklü mü kontrol et (frontend için)
+    if ! command -v npm &>/dev/null; then
+        echo -e "${RED}[HATA] npm bulunamadı. Lütfen Node.js kurun.${NC}"
+        exit 1
+    fi
+
+    # Backend bağımlılıklarını kur (varsa)
+    if [ -f "$PROJECT_ROOT/web/backend/requirements.txt" ]; then
+        echo -e "${YELLOW}→ Backend bağımlılıkları kontrol ediliyor...${NC}"
+        "$PROJECT_ROOT/venv/bin/pip" install -r "$PROJECT_ROOT/web/backend/requirements.txt" --quiet
+    fi
+
+    echo -e "${YELLOW}→ Backend (FastAPI) başlatılıyor...${NC}"
+    cd "$PROJECT_ROOT/web/backend"
+    PYTHONPATH="$PROJECT_ROOT" "$VENV_PYTHON" -m uvicorn main:app --reload --host 0.0.0.0 --port 8000 &
+    BACKEND_PID=$!
+    
+    echo -e "${YELLOW}→ Frontend (Vite/React) başlatılıyor...${NC}"
+    cd "$PROJECT_ROOT/web/frontend"
+    # Bağımlılıklar yoksa kur
+    if [ ! -d "node_modules" ]; then
+        echo -e "${YELLOW}→ npm install çalıştırılıyor...${NC}"
+        npm install --silent
+    fi
+    npm run dev &
+    FRONTEND_PID=$!
+    
+    echo -e "${GREEN}✓ Sunucular başlatıldı.${NC}"
+    echo -e "  Backend:  ${CYAN}http://localhost:8000${NC}"
+    echo -e "  Frontend: ${CYAN}http://localhost:5173${NC}"
+    echo -e "${YELLOW}  Durdurmak için: Ctrl+C${NC}"
+    echo "─────────────────────────────────────────────────────"
+    
+    # Ctrl+C için trap (çıkışta child process'leri de öldürür)
+    trap "echo -e '\n${YELLOW}Sunucular kapatılıyor...${NC}'; kill $BACKEND_PID $FRONTEND_PID 2>/dev/null; exit 0" SIGINT SIGTERM
+    
+    wait $BACKEND_PID $FRONTEND_PID
+}
+
 # ── Mod: docker-compose.yml oluştur ──────────────────────────────────────────
 create_compose() {
     COMPOSE_FILE="$PROJECT_ROOT/docker-compose.yml"
@@ -313,8 +357,9 @@ show_menu() {
     echo -e "  ${GREEN}4)${NC} pipeline     — Pipeline simülasyon (DB yok)"
     echo -e "  ${GREEN}5)${NC} db-up        — docker-compose.yml oluştur + DB başlat"
     echo -e "  ${GREEN}6)${NC} pipeline-db  — Pipeline + Docker DB (tam sistem)"
+    echo -e "  ${GREEN}7)${NC} servers      — Frontend ve Backend Sunucularını Başlat"
     echo ""
-    read -rp "  Seçim (1-6 veya mod adı): " choice
+    read -rp "  Seçim (1-7 veya mod adı): " choice
     echo ""
     case "$choice" in
         1|demo)         run_demo ;;
@@ -327,6 +372,7 @@ show_menu() {
             echo -e "${GREEN}✓ DB ayakta: PG=5432, Redis=6379${NC}"
             ;;
         6|pipeline-db)  create_compose; run_pipeline_db ;;
+        7|servers)      run_servers ;;
         *) echo -e "${RED}Geçersiz seçim.${NC}" ;;
     esac
 }
@@ -351,10 +397,11 @@ case "$MODE" in
         docker compose -f "$PROJECT_ROOT/docker-compose.yml" down
         echo -e "${GREEN}✓ DB durduruldu${NC}"
         ;;
+    servers)     run_servers ;;
     menu)        show_menu ;;
     *)
         echo -e "${RED}Bilinmeyen mod: $MODE${NC}"
-        echo -e "Geçerli modlar: demo | simulate | yolo | pipeline | pipeline-db | db-up | db-down"
+        echo -e "Geçerli modlar: demo | simulate | yolo | pipeline | pipeline-db | db-up | db-down | servers"
         exit 1
         ;;
 esac
