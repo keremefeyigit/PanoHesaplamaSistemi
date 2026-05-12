@@ -60,3 +60,7 @@ app.include_router(share.router,         prefix="/api/share",          tags=["Sh
 @app.get("/api/health")
 async def health():
     return {"status": "ok", "service": "tabela-backend"}
+
+@app.get("/")
+async def root():
+    return {"message": "Akıllı Tabela Backend API Çalışıyor! Dokümantasyon için /docs adresine gidebilirsiniz."}

@@ -35,8 +35,11 @@ try:
             sys.path.insert(0, root_dir)
             
         import config
-        from core.object_detector import ObjectDetector
-        detector = ObjectDetector(config.default_config.detector)
+        # Backend içinde "core" paketi olduğu için import çakışması oluyor, mutlak yoldan yüklüyoruz.
+        spec = importlib.util.spec_from_file_location("root_core.object_detector", detector_path)
+        od_module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(od_module)
+        detector = od_module.ObjectDetector(config.default_config.detector)
 except Exception as e:
     import traceback
     traceback.print_exc()
