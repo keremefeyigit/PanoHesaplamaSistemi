@@ -40,16 +40,22 @@ const LiveView = () => {
     if (useUpload) return;
     async function setupCamera() {
       try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error("Tarayıcınız kamera API'sini desteklemiyor veya güvenli bağlantı (HTTPS) gerekiyor.");
+        }
         const stream = await navigator.mediaDevices.getUserMedia({ 
-          video: true 
+          video: { facingMode: "environment" } 
         });
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
+          videoRef.current.onloadedmetadata = () => {
+            videoRef.current?.play().catch(e => console.error("Play error:", e));
+          };
           setIsStreaming(true);
         }
       } catch (err: any) {
         console.error("Kamera erişim hatası:", err);
-        alert(`Kameraya erişilemedi: ${err.message}. Kamera başka bir uygulama (ör: arkaplanda çalışan pipeline) tarafından kullanılıyor olabilir.`);
+        alert(`Kameraya erişilemedi: ${err.message}. Lütfen HTTPS kullanın veya tarayıcı izinlerini kontrol edin.`);
         setUseUpload(true); // Fallback to upload if camera fails
       }
     }
@@ -256,6 +262,11 @@ const LiveView = () => {
           display: grid;
           grid-template-columns: 1fr 300px;
           gap: 1.5rem;
+        }
+        @media (max-width: 900px) {
+          .live-view-container {
+            grid-template-columns: 1fr;
+          }
         }
         .video-placeholder {
           position: relative;
