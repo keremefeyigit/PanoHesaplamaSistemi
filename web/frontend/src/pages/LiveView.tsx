@@ -118,7 +118,7 @@ const LiveView = () => {
   const sendRequest = async (formData: FormData) => {
     try {
         const token = localStorage.getItem('token') || 'admin123';
-        const res = await fetch('http://localhost:8000/api/detections/process-image', {
+        const res = await fetch('/api/detections/process-image', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`
@@ -197,6 +197,7 @@ const LiveView = () => {
                <input 
                  type="file" 
                  accept="image/*" 
+                 capture="environment"
                  onChange={(e) => {
                    if (e.target.files && e.target.files[0]) {
                      setSelectedFile(e.target.files[0]);
