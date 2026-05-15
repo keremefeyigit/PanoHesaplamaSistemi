@@ -1,6 +1,32 @@
 .app-layout {
   display: flex;
   min-height: 100vh;
+  flex-direction: row;
+}
+
+@media (max-width: 768px) {
+  .app-layout {
+    flex-direction: column;
+  }
+  .sidebar {
+    width: 100% !important;
+    padding: 1rem;
+  }
+  .nav-links {
+    display: flex;
+    overflow-x: auto;
+    gap: 0.5rem;
+  }
+  .nav-links li {
+    margin-bottom: 0 !important;
+    white-space: nowrap;
+  }
+  .top-bar {
+    padding: 0 1rem !important;
+  }
+  .page-container {
+    padding: 1rem !important;
+  }
 }
 
 .sidebar {
