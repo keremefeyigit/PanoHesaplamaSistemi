@@ -25,21 +25,30 @@ detector = None
 try:
     import sys, os, importlib.util
     root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../"))
-    
+
     detector_path = os.path.join(root_dir, "core", "object_detector.py")
-    config_path = os.path.join(root_dir, "config.py")
+    models_path   = os.path.join(root_dir, "core", "models.py")
+    config_path   = os.path.join(root_dir, "config.py")
 
     if os.path.exists(detector_path) and os.path.exists(config_path):
-        import sys
         if root_dir not in sys.path:
             sys.path.insert(0, root_dir)
-            
+
+        # 1) Önce root core/models.py'yi "root_core.models" adıyla yükle
+        #    object_detector.py içindeki "from core.models import Detection"
+        #    backend'in kendi "core" paketiyle çakışıyor; bu alias bunu çözer.
+        spec_m = importlib.util.spec_from_file_location("core.models", models_path)
+        mod_m  = importlib.util.module_from_spec(spec_m)
+        sys.modules["core.models"] = mod_m          # önce kaydet (circular import önlemi)
+        spec_m.loader.exec_module(mod_m)
+
+        # 2) Şimdi object_detector'ı yükle — artık core.models çözümleniyor
         import config
-        # Backend içinde "core" paketi olduğu için import çakışması oluyor, mutlak yoldan yüklüyoruz.
-        spec = importlib.util.spec_from_file_location("root_core.object_detector", detector_path)
-        od_module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(od_module)
-        detector = od_module.ObjectDetector(config.default_config.detector)
+        spec_od = importlib.util.spec_from_file_location("root_core.object_detector", detector_path)
+        od_module = importlib.util.module_from_spec(spec_od)
+        spec_od.loader.exec_module(od_module)
+        detector = od_module.ObjectDetector(config.config.detector)
+        print("✓ ObjectDetector başarıyla yüklendi.")
 except Exception as e:
     import traceback
     traceback.print_exc()
@@ -83,7 +92,7 @@ async def process_image(
 
     if detector:
         # Confidence düşük tutulabilir algılaması için
-        detections, _ = detector.detect(img_cv, conf_threshold=0.1)
+        detections = detector.detect(img_cv)
         if detections:
             largest = max(detections, key=lambda d: d.bbox.width * d.bbox.height)
             obj_class = largest.class_name
