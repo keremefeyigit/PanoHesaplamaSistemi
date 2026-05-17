@@ -82,7 +82,7 @@ class DetectorConfig:
         default_factory=lambda: ["tabela", "pano", "afis", "megalight", "raket"]
     )
     # GPU kullanım ayarı ('cuda', 'cpu', 'mps')
-    device: str = "cuda"
+    device: str = "cpu"
     # Inference çözünürlüğü (imgsz)
     img_size: int = 640
     # Çoklu frame takibi için tracker (botsort / bytetrack)
