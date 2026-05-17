@@ -43,7 +43,14 @@ app = FastAPI(
 # ─── CORS ─────────────────────────────────────────────────────────────────────
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "http://***REMOVED***",
+        "http://***REMOVED***:5173",
+        "http://***REMOVED***:8000",
+        "*",  # Geliştirme ortamı için tüm origin'lere izin ver
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

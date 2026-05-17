@@ -3,7 +3,7 @@ web/backend/api/routes/detections.py
 ======================================
 Tespit verisi listeleme, yükleme, istatistik.
 """
-from fastapi import APIRouter, Depends, Query, File, UploadFile, Form
+from fastapi import APIRouter, Depends, Query, File, UploadFile, Form, HTTPException
 from typing import Optional, List
 import uuid
 import time
@@ -99,9 +99,9 @@ async def process_image(
                 H_px = largest.bbox.height
                 height_m = round((distance_m * H_px) / f, 2)
         else:
-            return {"error": "Resimde pano tepit edilemedi."}
+            raise HTTPException(status_code=422, detail="Resimde pano tespit edilemedi. Daha net veya yakın bir fotoğraf deneyin.")
     else:
-        return {"error": "Yapay zeka modeli arkaplanda yüklenemedi."}
+        raise HTTPException(status_code=503, detail="Yapay zeka modeli arkaplanda yüklenemedi. Sunucu loglarını kontrol edin.")
 
     session_id = f"ses-web-{uuid.uuid4().hex[:6]}"
     session_exists = next((s for s in get_all_sessions() if s["id"] == session_id), None)
