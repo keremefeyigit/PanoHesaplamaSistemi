@@ -55,8 +55,8 @@ const LiveView = () => {
         }
       } catch (err: any) {
         console.error("Kamera erişim hatası:", err);
-        alert(`Kameraya erişilemedi: ${err.message}. Lütfen HTTPS kullanın veya tarayıcı izinlerini kontrol edin.`);
-        setUseUpload(true); // Fallback to upload if camera fails
+        // HTTP üzerinden erişimde kamera çalışmaz — otomatik olarak fotoğraf yükleme moduna geçiyoruz
+        setUseUpload(true);
       }
     }
     setupCamera();
@@ -126,8 +126,8 @@ const LiveView = () => {
           body: formData
         });
         
+        const data = await res.json();
         if (res.ok) {
-            const data = await res.json();
             if (data.detection) {
                 setMeasurements({
                     type: data.detection.class_label.toUpperCase(),
@@ -136,13 +136,19 @@ const LiveView = () => {
                     width: `${(data.detection.real_width_m * 100).toFixed(0)} cm`,
                     height: `${(data.detection.real_height_m * 100).toFixed(0)} cm`
                 });
-                alert("Ölçüm başarıyla hesaplandı ve sisteme kaydedildi/paylaşıldı.");
+                alert("Ölçüm başarıyla hesaplandı ve sisteme kaydedildi!");
+            } else {
+                alert("Sunucudan geçerli bir sonuç gelmedi. Tekrar deneyin.");
             }
         } else {
-            console.error("İşleme hatası");
+            // API'den gelen hata mesajını kullanıcıya göster
+            const errMsg = data?.detail || data?.error || `Sunucu hatası (${res.status})`;
+            alert(`Hata: ${errMsg}`);
+            console.error("İşleme hatası:", data);
         }
     } catch(e) {
         console.error("API'ye ulaşılamadı", e);
+        alert("Sunucuya bağlanılamadı. Backend çalışıyor mu?");
     } finally {
         setIsProcessing(false);
     }
@@ -164,7 +170,7 @@ const LiveView = () => {
           </h3>
           {!useUpload && (
             <span className={`status-badge ${isStreaming ? 'active' : 'inactive'}`}>
-              {isStreaming ? 'Aktif' : 'Başlatılıyor...'}
+              {isStreaming ? 'Aktif' : 'HTTPS Gerekli'}
             </span>
           )}
         </div>
@@ -189,7 +195,11 @@ const LiveView = () => {
                   </div>
                 )}
                 {!isStreaming && (
-                  <div className="loading-overlay">Kamera bağlantısı bekleniyor... Veya bilgisayar kameranıza izin verin.</div>
+                  <div className="loading-overlay" style={{flexDirection: 'column', gap: '0.5rem', textAlign: 'center', padding: '1rem'}}>
+                    <span style={{fontSize: '2rem'}}>🔒</span>
+                    <span>Kamera için <strong>HTTPS</strong> gerekli.</span>
+                    <span style={{fontSize: '0.8rem', opacity: 0.7}}>Fotoğraf Yükle sekmesini kullanabilirsiniz.</span>
+                  </div>
                 )}
             </>
           ) : (
