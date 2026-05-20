@@ -210,6 +210,11 @@ class ObjectDetector:
                 if use_tracker and boxes.id is not None:
                     track_id = int(boxes.id[i].item())
 
+                poly = None
+                if getattr(result, "masks", None) is not None and result.masks.xy is not None:
+                    if len(result.masks.xy) > i:
+                        poly = result.masks.xy[i]
+
                 detections.append(
                     Detection(
                         bbox=tuple(xyxy),          # type: ignore[arg-type]
@@ -219,6 +224,7 @@ class ObjectDetector:
                         track_id=track_id,
                         source_camera=camera,
                         timestamp=ts,
+                        polygon=poly,
                     )
                 )
         return detections
