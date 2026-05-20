@@ -61,7 +61,7 @@ const Dashboard = () => {
       <style>{`
         .stats-grid {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
           gap: 1.5rem;
           margin-bottom: 2rem;
         }
@@ -78,8 +78,13 @@ const Dashboard = () => {
         }
         .dashboard-main {
           display: grid;
-          grid-template-columns: 2fr 1fr;
+          grid-template-columns: 1fr;
           gap: 1.5rem;
+        }
+        @media (min-width: 900px) {
+          .dashboard-main {
+            grid-template-columns: 2fr 1fr;
+          }
         }
         .detection-list {
           list-style: none;
