@@ -118,7 +118,9 @@ const LiveView = () => {
   const sendRequest = async (formData: FormData) => {
     try {
         const token = localStorage.getItem('token') || 'admin123';
-        const API = 'http://159.65.115.194:8000';
+        const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+          ? 'http://localhost:8000'
+          : window.location.origin;
         const res = await fetch(`${API}/api/detections/process-image`, {
           method: 'POST',
           headers: {

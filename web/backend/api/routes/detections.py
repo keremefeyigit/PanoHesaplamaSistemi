@@ -89,24 +89,39 @@ async def process_image(
     width_m = 0.0
     height_m = 0.0
     distance_m = 0.0
+    calculated_area = 0.0
 
     if detector:
         # Confidence düşük tutulabilir algılaması için
         detections = detector.detect(img_cv)
         if detections:
-            largest = max(detections, key=lambda d: d.bbox.width * d.bbox.height)
-            obj_class = largest.class_name
+            largest = max(detections, key=lambda d: d.area)
+            obj_class = largest.class_label
             conf = largest.confidence
             
             # Dinamik hesaplama: Pano genişliğini standart 3m baz alarak hesaplıyoruz
             f = 850.0 # Kamera odak uzaklığı (varsayım)
             W_real_assume = 3.0 # Çoğu pano minimum 3m genişliğindedir
-            P = largest.bbox.width
+            P = largest.pixel_width
             if P > 0:
                 distance_m = round((W_real_assume * f) / P, 1)
                 width_m = W_real_assume
-                H_px = largest.bbox.height
+                H_px = largest.pixel_height
                 height_m = round((distance_m * H_px) / f, 2)
+                
+                # Poligon maskesi varsa Green Teoremi (Shoelace) ile milimetrik hassas alan hesabı yap
+                if largest.polygon is not None and len(largest.polygon) >= 3:
+                    try:
+                        pts = np.array(largest.polygon, dtype=np.float32)
+                        pixel_area = cv2.contourArea(pts)
+                        scale = distance_m / f
+                        real_area = pixel_area * (scale ** 2)
+                        calculated_area = round(real_area, 3)
+                    except Exception as e:
+                        print(f"Warning: Hassas alan hesabı yapılamadı: {e}")
+                        calculated_area = round(width_m * height_m, 3)
+                else:
+                    calculated_area = round(width_m * height_m, 3)
         else:
             raise HTTPException(status_code=422, detail="Resimde pano tespit edilemedi. Daha net veya yakın bir fotoğraf deneyin.")
     else:
@@ -134,7 +149,7 @@ async def process_image(
         "distance_m": distance_m,
         "real_width_m": width_m,
         "real_height_m": height_m,
-        "area_m2": round(width_m * height_m, 3),
+        "area_m2": calculated_area,
         "sign_lat": gps_lat,
         "sign_lon": gps_lon,
         "vehicle_lat": gps_lat,

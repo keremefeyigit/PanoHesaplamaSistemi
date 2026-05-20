@@ -16,7 +16,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routes import auth, organizations, detections, stream, share
+from api.routes import auth, organizations, detections, stream, share, training
 
 logging.basicConfig(
     level=logging.INFO,
@@ -62,6 +62,7 @@ app.include_router(organizations.router, prefix="/api/organizations",  tags=["Or
 app.include_router(detections.router,    prefix="/api/detections",     tags=["Detections"])
 app.include_router(stream.router,        prefix="/api/stream",         tags=["Stream"])
 app.include_router(share.router,         prefix="/api/share",          tags=["Share"])
+app.include_router(training.router,      prefix="/api/training",       tags=["Training"])
 
 
 @app.get("/api/health")

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Optional, Any
 
 
 @dataclass
@@ -29,6 +29,8 @@ class Detection:
     source_camera: str = "wide"
     # Tespit zamanı [Unix timestamp]
     timestamp: float = field(default_factory=time.time)
+    # Segmentasyon maskesi poligon köşeleri (isteğe bağlı)
+    polygon: Optional[Any] = None
 
     @property
     def bbox_center(self) -> tuple[float, float]:
