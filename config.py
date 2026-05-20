@@ -78,8 +78,9 @@ class DetectorConfig:
     # IoU eşiği (NMS — Non-Maximum Suppression için)
     iou_threshold: float = 0.40
     # Hedef sınıf etiketleri (COCO veya özel eğitim sınıfları)
+    # Boş liste verilirse modelin bulduğu HER nesneyi kabul eder (Test için ideal)
     target_classes: list[str] = field(
-        default_factory=lambda: ["tabela", "pano", "afis", "megalight", "raket"]
+        default_factory=lambda: []
     )
     # GPU kullanım ayarı ('cuda', 'cpu', 'mps')
     device: str = "cpu"

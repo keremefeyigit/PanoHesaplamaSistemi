@@ -118,7 +118,8 @@ const LiveView = () => {
   const sendRequest = async (formData: FormData) => {
     try {
         const token = localStorage.getItem('token') || 'admin123';
-        const res = await fetch('/api/detections/process-image', {
+        const API = 'http://159.65.115.194:8000';
+        const res = await fetch(`${API}/api/detections/process-image`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`
