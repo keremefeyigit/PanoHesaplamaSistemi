@@ -8,6 +8,7 @@ const defaultInstitutions = [
 const LiveView = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const resultCanvasRef = useRef<HTMLCanvasElement>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [useUpload, setUseUpload] = useState(false);
@@ -68,6 +69,18 @@ const LiveView = () => {
       }
     };
   }, [useUpload]);
+
+  const handleReset = () => {
+    setMeasurements({
+      type: '-',
+      area: '-',
+      distance: '-',
+      width: '-',
+      height: '-'
+    });
+    setSelectedFile(null);
+    setPreviewUrl(null);
+  };
 
   const handleCaptureAndProcess = async () => {
     setIsProcessing(true);
@@ -139,6 +152,12 @@ const LiveView = () => {
                     width: `${(data.detection.real_width_m * 100).toFixed(0)} cm`,
                     height: `${(data.detection.real_height_m * 100).toFixed(0)} cm`
                 });
+
+                // Canvas'ın render edilmesini bekleyip üstüne çizim yapıyoruz
+                setTimeout(() => {
+                  drawDetections(data.detection);
+                }, 100);
+
                 alert("Ölçüm başarıyla hesaplandı ve sisteme kaydedildi!");
             } else {
                 alert("Sunucudan geçerli bir sonuç gelmedi. Tekrar deneyin.");
@@ -157,6 +176,111 @@ const LiveView = () => {
     }
   };
 
+  const drawDetections = (detection: any) => {
+    const canvas = resultCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    if (useUpload && previewUrl) {
+      const img = new Image();
+      img.src = previewUrl;
+      img.onload = () => {
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        ctx.drawImage(img, 0, 0);
+        renderOverlay(ctx, detection, img.naturalWidth, img.naturalHeight);
+      };
+    } else if (!useUpload && canvasRef.current) {
+      const srcCanvas = canvasRef.current;
+      canvas.width = srcCanvas.width;
+      canvas.height = srcCanvas.height;
+      ctx.drawImage(srcCanvas, 0, 0);
+      renderOverlay(ctx, detection, srcCanvas.width, srcCanvas.height);
+    }
+  };
+
+  const renderOverlay = (ctx: CanvasRenderingContext2D, detection: any, width: number, height: number) => {
+    if (!detection || !detection.bbox) return;
+    const [x1, y1, x2, y2] = detection.bbox;
+    const boxW = x2 - x1;
+    const boxH = y2 - y1;
+
+    // 1) Segmentasyon Maskesi (Poligon)
+    if (detection.polygon && detection.polygon.length >= 3) {
+      ctx.beginPath();
+      ctx.moveTo(detection.polygon[0][0], detection.polygon[0][1]);
+      for (let i = 1; i < detection.polygon.length; i++) {
+        ctx.lineTo(detection.polygon[i][0], detection.polygon[i][1]);
+      }
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(34, 197, 94, 0.25)'; // translucent green
+      ctx.fill();
+      ctx.strokeStyle = '#22c55e';
+      ctx.lineWidth = Math.max(2, Math.round(width / 600));
+      ctx.stroke();
+    }
+
+    // 2) Bounding Box (Sınır Kutusu)
+    ctx.strokeStyle = '#3b82f6'; // vibrant blue
+    ctx.lineWidth = Math.max(3, Math.round(width / 400));
+    
+    // Premium glow efekti
+    ctx.shadowColor = 'rgba(59, 130, 246, 0.6)';
+    ctx.shadowBlur = 12;
+    ctx.strokeRect(x1, y1, boxW, boxH);
+    ctx.shadowBlur = 0; // reset shadow
+
+    // Köşe çentikleri
+    const tick = Math.max(12, Math.round(boxW * 0.15));
+    ctx.strokeStyle = '#60a5fa'; // lighter blue
+    ctx.lineWidth = ctx.lineWidth + 2;
+
+    // Top-left
+    ctx.beginPath();
+    ctx.moveTo(x1 + tick, y1);
+    ctx.lineTo(x1, y1);
+    ctx.lineTo(x1, y1 + tick);
+    ctx.stroke();
+
+    // Top-right
+    ctx.beginPath();
+    ctx.moveTo(x2 - tick, y1);
+    ctx.lineTo(x2, y1);
+    ctx.lineTo(x2, y1 + tick);
+    ctx.stroke();
+
+    // Bottom-left
+    ctx.beginPath();
+    ctx.moveTo(x1 + tick, y2);
+    ctx.lineTo(x1, y2);
+    ctx.lineTo(x1, y2 - tick);
+    ctx.stroke();
+
+    // Bottom-right
+    ctx.beginPath();
+    ctx.moveTo(x2 - tick, y2);
+    ctx.lineTo(x2, y2);
+    ctx.lineTo(x2, y2 - tick);
+    ctx.stroke();
+
+    // 3) Etiket (Label) ve Güven Skoru
+    const labelText = `${detection.class_label.toUpperCase()} (${(detection.confidence * 100).toFixed(0)}%)`;
+    const fontSize = Math.max(14, Math.round(width / 60));
+    ctx.font = `bold ${fontSize}px Inter, -apple-system, sans-serif`;
+    const textWidth = ctx.measureText(labelText).width;
+    const padding = fontSize * 0.5;
+
+    // Label Arka Planı
+    ctx.fillStyle = '#3b82f6';
+    const labelY = y1 - fontSize - padding >= 0 ? y1 - fontSize - padding : 0;
+    ctx.fillRect(x1, labelY, textWidth + padding * 2, fontSize + padding);
+
+    // Label Yazısı
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(labelText, x1 + padding, labelY + fontSize);
+  };
+
   return (
     <div className="live-view-container">
       <div className="card camera-box">
@@ -164,11 +288,11 @@ const LiveView = () => {
           <h3>
             <button 
               className={`toggle-btn ${!useUpload ? 'active' : ''}`}
-              onClick={() => setUseUpload(false)}
+              onClick={() => { setUseUpload(false); handleReset(); }}
             >Kamera ile İzle</button>
             <button 
               className={`toggle-btn ${useUpload ? 'active' : ''}`}
-              onClick={() => setUseUpload(true)}
+              onClick={() => { setUseUpload(true); handleReset(); }}
             >Fotoğraf Yükle</button>
           </h3>
           {!useUpload && (
@@ -178,7 +302,7 @@ const LiveView = () => {
           )}
         </div>
         <div className="video-placeholder">
-          {!useUpload ? (
+          {!useUpload && (
             <>
                 <video 
                   ref={videoRef} 
@@ -186,17 +310,10 @@ const LiveView = () => {
                   playsInline 
                   muted 
                   className="live-video"
+                  style={{ display: measurements.area !== '-' ? 'none' : 'block' }}
                 />
                 <canvas ref={canvasRef} style={{ display: 'none' }} />
                 
-                {isStreaming && measurements.area !== '-' && (
-                  <div className="overlay-info">
-                    <div className="measurement-box">
-                      <p>Tespit: <strong>{measurements.type}</strong></p>
-                      <p>Alan: <strong>{measurements.area}</strong></p>
-                    </div>
-                  </div>
-                )}
                 {!isStreaming && (
                   <div className="loading-overlay" style={{flexDirection: 'column', gap: '0.5rem', textAlign: 'center', padding: '1rem'}}>
                     <span style={{fontSize: '2rem'}}>🔒</span>
@@ -205,8 +322,10 @@ const LiveView = () => {
                   </div>
                 )}
             </>
-          ) : (
-            <div className="upload-container">
+          )}
+
+          {useUpload && (
+            <div className="upload-container" style={{ display: measurements.area !== '-' ? 'none' : 'flex' }}>
                <input 
                  type="file" 
                  accept="image/*" 
@@ -223,25 +342,48 @@ const LiveView = () => {
                {!previewUrl && <div className="loading-overlay">Hesaplanacak fotoğrafı seçin</div>}
             </div>
           )}
+
+          {measurements.area !== '-' && (
+            <canvas ref={resultCanvasRef} className="live-video" />
+          )}
+
+          {measurements.area !== '-' && (
+            <div className="overlay-info">
+              <div className="measurement-box">
+                <p>Tespit: <strong>{measurements.type}</strong></p>
+                <p>Alan: <strong>{measurements.area}</strong></p>
+              </div>
+            </div>
+          )}
         </div>
         <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <select 
             value={selectedOrg} 
             onChange={e => setSelectedOrg(e.target.value)}
             style={{ padding: '0.5rem', borderRadius: '4px', flexGrow: 1 }}
+            disabled={measurements.area !== '-'}
           >
             <option value="">-- Kurum Seçin (Opsiyonel) --</option>
             {organizations.map(o => (
               <option key={o.id || o.slug} value={o.slug || `org-${o.id}`}>{o.name}</option>
             ))}
           </select>
-          <button 
-            className="primary" 
-            onClick={handleCaptureAndProcess}
-            disabled={isProcessing || (!useUpload && !isStreaming) || (useUpload && !selectedFile)}
-          >
-            {isProcessing ? "Hesaplanıyor..." : "Görüntüyü İşle & Paylaş"}
-          </button>
+          {measurements.area !== '-' ? (
+            <button 
+              className="primary" 
+              onClick={handleReset}
+            >
+              {!useUpload ? "Kamerayı Yeniden Başlat" : "Yeni Fotoğraf Seç"}
+            </button>
+          ) : (
+            <button 
+              className="primary" 
+              onClick={handleCaptureAndProcess}
+              disabled={isProcessing || (!useUpload && !isStreaming) || (useUpload && !selectedFile)}
+            >
+              {isProcessing ? "Hesaplanıyor..." : "Görüntüyü İşle & Paylaş"}
+            </button>
+          )}
         </div>
       </div>
 

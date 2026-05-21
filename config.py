@@ -80,7 +80,7 @@ class DetectorConfig:
     # Hedef sınıf etiketleri (COCO veya özel eğitim sınıfları)
     # Boş liste verilirse modelin bulduğu HER nesneyi kabul eder (Test için ideal)
     target_classes: list[str] = field(
-        default_factory=lambda: []
+        default_factory=lambda: ["box", "billboard"]
     )
     # GPU kullanım ayarı ('cuda', 'cpu', 'mps')
     device: str = "cpu"

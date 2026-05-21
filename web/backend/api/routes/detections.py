@@ -90,14 +90,35 @@ async def process_image(
     height_m = 0.0
     distance_m = 0.0
     calculated_area = 0.0
+    largest_det = None
 
     if detector:
         # Confidence düşük tutulabilir algılaması için
         detections = detector.detect(img_cv)
+        
+        # Sadece izin verilen hedef sınıfları filtrele (yalan sonuç üretmesin)
+        valid_classes = ["box", "billboard"]
+        try:
+            if hasattr(config, "config") and config.config.detector.target_classes:
+                valid_classes = config.config.detector.target_classes
+        except Exception:
+            pass
+            
+        detections = [d for d in detections if d.class_label in valid_classes]
+        
         if detections:
             largest = max(detections, key=lambda d: d.area)
-            obj_class = largest.class_label
+            largest_det = largest
+            raw_class = largest.class_label
             conf = largest.confidence
+            
+            # Sınıf İsimlerini Türkçe Terimlere Dönüştür
+            if raw_class == "box":
+                obj_class = "Pano"
+            elif raw_class == "billboard":
+                obj_class = "Tabela"
+            else:
+                obj_class = raw_class.capitalize()
             
             # Dinamik hesaplama: Pano genişliğini standart 3m baz alarak hesaplıyoruz
             f = 850.0 # Kamera odak uzaklığı (varsayım)
@@ -109,7 +130,7 @@ async def process_image(
                 H_px = largest.pixel_height
                 height_m = round((distance_m * H_px) / f, 2)
                 
-                # Poligon maskesi varsa Green Teoremi (Shoelace) ile milimetrik hassas alan hesabı yap
+                # Poligon maskesi varsa Green Teoremi (Shoelace) ile milimetrik alan hesabı yap
                 if largest.polygon is not None and len(largest.polygon) >= 3:
                     try:
                         pts = np.array(largest.polygon, dtype=np.float32)
@@ -158,6 +179,8 @@ async def process_image(
         "measurement_method": "similar_triangles",
         "thumbnail_path": None,
         "is_shared_with": [org_id] if org_id else [],
+        "bbox": list(largest_det.bbox) if (largest_det is not None and largest_det.bbox is not None) else None,
+        "polygon": largest_det.polygon.tolist() if (largest_det is not None and largest_det.polygon is not None and hasattr(largest_det.polygon, "tolist")) else None,
     }
     
     _DETECTIONS.insert(0, new_detection)
