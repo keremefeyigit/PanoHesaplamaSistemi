@@ -88,7 +88,7 @@ def test_process_image_with_detection_and_polygon(monkeypatch):
     res_data = response.json()
     assert "detection" in res_data
     det = res_data["detection"]
-    assert det["class_label"] == "billboard"
+    assert det["class_label"] == "Tabela"
     assert det["confidence"] == 0.95
     # f = 850, W_real_assume = 3.0, P = 100
     # distance_m = (3.0 * 850) / 100 = 25.5
