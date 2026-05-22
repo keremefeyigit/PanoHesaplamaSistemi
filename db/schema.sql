@@ -1,4 +1,4 @@
-"""
+/*
 db/schema.sql
 =============
 PostgreSQL + PostGIS veritabanı şeması — Akıllı Tabela Sistemi
@@ -12,7 +12,7 @@ Bu dosya:
 
 Çalıştırma:
     psql -U tabela_user -d tabela_db -f db/schema.sql
-"""
+*/
 
 -- ─── Uzantılar ────────────────────────────────────────────────────────────────
 CREATE EXTENSION IF NOT EXISTS postgis;

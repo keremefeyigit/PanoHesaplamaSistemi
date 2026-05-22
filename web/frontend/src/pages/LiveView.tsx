@@ -45,7 +45,7 @@ const LiveView = () => {
           throw new Error("Tarayıcınız kamera API'sini desteklemiyor veya güvenli bağlantı (HTTPS) gerekiyor.");
         }
         const stream = await navigator.mediaDevices.getUserMedia({ 
-          video: { facingMode: "environment" } 
+          video: { facingMode: { ideal: "environment" } } 
         });
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
