@@ -74,13 +74,13 @@ class DetectorConfig:
     """YOLOv8/v10 nesne tespit konfigürasyonu."""
     model_path: Path = BASE_DIR / "models" / "yolov8n_tabela.pt"
     # Güven eşiği — bu değerin altındaki tespitler göz ardı edilir
-    confidence_threshold: float = 0.45
+    confidence_threshold: float = 0.25
     # IoU eşiği (NMS — Non-Maximum Suppression için)
     iou_threshold: float = 0.40
     # Hedef sınıf etiketleri (COCO veya özel eğitim sınıfları)
     # Boş liste verilirse modelin bulduğu HER nesneyi kabul eder (Test için ideal)
     target_classes: list[str] = field(
-        default_factory=lambda: ["box", "billboard"]
+        default_factory=lambda: ["billboard"]
     )
     # GPU kullanım ayarı ('cuda', 'cpu', 'mps')
     device: str = "cpu"
