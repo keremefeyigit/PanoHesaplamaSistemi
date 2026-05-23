@@ -289,7 +289,8 @@ async def process_image(
         class_map = {"billboard": "Pano", "box": "Pano"}
         obj_class = class_map.get(raw_class, raw_class.capitalize())
         
-        f_cam = 850.0
+        img_h, img_w = img_cv.shape[:2]
+        f_cam = img_w * 0.8  # Dinamik FOV yaklaşık hesabı (~60 derece FOV)
         W_real_assume = 3.0
         P = largest_det.pixel_width
         if P > 0:
@@ -318,7 +319,9 @@ async def process_image(
         
         P = x2 - x1
         H_px = y2 - y1
-        f_cam = 850.0
+        
+        img_h, img_w = img_cv.shape[:2]
+        f_cam = img_w * 0.8  # Dinamik FOV yaklaşık hesabı
         W_real_assume = 3.0
         if P > 0:
             distance_m = round((W_real_assume * f_cam) / P, 1)
