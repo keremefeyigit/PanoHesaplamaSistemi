@@ -9,9 +9,10 @@ YELLOW='\033[1;33m'
 BOLD='\033[1m'
 NC='\033[0m'
 
-SSH_KEY="/home/kerem/.ssh/proje"
-SERVER_IP="159.65.115.194"
-PORT="8080"
+# Konfigürasyon (Varsayılan veya Ortam Değişkeni)
+SSH_KEY="${SSH_KEY:-$HOME/.ssh/proje}"
+SERVER_IP="${SERVER_IP:-127.0.0.1}"
+PORT="${PORT:-8080}"
 
 echo -e "${CYAN}${BOLD}╔══════════════════════════════════════════════════════════════╗"
 echo -e "║   PanoHesaplamaSistemi — Yerel SSH Tünel Bağlantısı          ║"

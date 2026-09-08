@@ -18,5 +18,8 @@ def download_datasets(api_key):
     print(f"Billboard veri seti konumu: {billboard_dataset.location}")
 
 if __name__ == "__main__":
-    API_KEY = "m4lVFAghZTVmi9Kx2r8R"
-    download_datasets(API_KEY)
+    API_KEY = os.getenv("ROBOFLOW_API_KEY")
+    if not API_KEY:
+        print("[UYARI] ROBOFLOW_API_KEY ortam değişkeni tanımlı değil. Lütfen export ROBOFLOW_API_KEY='anahtarınız' şeklinde belirtin.")
+    else:
+        download_datasets(API_KEY)

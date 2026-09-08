@@ -98,8 +98,8 @@ class PostgreSQLConfig:
     host: str = "localhost"
     port: int = 5432
     database: str = "tabela_db"
-    user: str = "tabela_user"
-    password: str = "changeme"             # Prod'da env-var ile override edin!
+    user: str = os.getenv("DB_USER", "tabela_user")
+    password: str = os.getenv("DB_PASSWORD", "changeme")             # Prod'da env-var ile override edin!
     pool_min_size: int = 2
     pool_max_size: int = 10
 
