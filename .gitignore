@@ -173,3 +173,19 @@ BillBoard-3/
 boxes-segmentation-2-1/
 test_img.jpg
 test_image.jpg
+
+# Gizli anahtar, sertifika ve çalışma zamanı veritabanı repoya girmez (sunucu ilk açılışta üretir)
+*.pem
+*.key
+*.crt
+web/mobile_server/certs/
+web/mobile_server/measurements.db
+*.db
+.env
+.env.*
+!.env.example
+
+# Dahili tünel/uzak erişim betikleri repoya girmez
+start_tunnel.sh
+start_local_tunnel.sh
+remote_fix.sh

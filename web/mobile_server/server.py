@@ -312,6 +312,7 @@ def ensure_cert() -> tuple[Path, Path]:
     key  = CERT_DIR / "key.pem"
     if cert.exists() and key.exists():
         return cert, key
+    CERT_DIR.mkdir(parents=True, exist_ok=True)  # certs/ artık repoda yok (gizli anahtar git'e girmesin)
     logger.info("Sertifika üretiliyor (openssl)…")
     subprocess.run([
         "openssl", "req", "-x509", "-newkey", "rsa:2048",
