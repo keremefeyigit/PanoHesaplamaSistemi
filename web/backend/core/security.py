@@ -12,8 +12,11 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 import os
+import secrets
 # ─── Sabitler (üretimde env-var ile override et) ──────────────────────────────
-SECRET_KEY = os.getenv("SECRET_KEY", "***REMOVED***")
+# SECRET_KEY verilmezse her başlatmada rastgele üretilir (oturumlar yeniden başlatmada düşer);
+# kalıcı oturum için SECRET_KEY ortam değişkenini tanımlayın.
+SECRET_KEY = os.getenv("SECRET_KEY") or secrets.token_urlsafe(48)
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 8   # 8 saat
 

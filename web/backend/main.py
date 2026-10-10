@@ -11,6 +11,7 @@ FastAPI uygulama giriş noktası.
 from __future__ import annotations
 
 import logging
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -41,16 +42,17 @@ app = FastAPI(
 )
 
 # ─── CORS ─────────────────────────────────────────────────────────────────────
+# İzinli origin'ler CORS_ORIGINS ortam değişkeninden (virgülle ayrılmış) gelir.
+# Çerezli istek (allow_credentials) ile "*" birlikte kullanılmaz.
+_VARSAYILAN_ORIGINLER = "http://localhost:5173,http://localhost:3000"
+CORS_ORIGINS = [
+    o.strip()
+    for o in os.getenv("CORS_ORIGINS", _VARSAYILAN_ORIGINLER).split(",")
+    if o.strip() and o.strip() != "*"
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "http://***REMOVED***",
-        "http://***REMOVED***:5173",
-        "http://***REMOVED***:8000",
-        "*",  # Geliştirme ortamı için tüm origin'lere izin ver
-    ],
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
