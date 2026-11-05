@@ -1,7 +1,7 @@
 [AKILLI_TABELA_SISTEM_DOKUMANI.md](https://github.com/user-attachments/files/27552872/AKILLI_TABELA_SISTEM_DOKUMANI.md)
 
 # PanoHesaplamaSistemi
-Kentsel reklam alanlarının yönetiminde dijital dönüşüm: Belediye ve kamu kurumları için reklam panosu boyutlarını milimetrik hassasiyetle hesaplayan, koordinat takibini otomatize eden OpenCV ve Yapay Zeka destekli yenilikçi analiz ekosistemi.
+Kentsel reklam alanlarının yönetiminde dijital dönüşüm: Belediye ve kamu kurumları için reklam panosu boyutlarını hesaplayan, koordinat takibini otomatize eden OpenCV ve Yapay Zeka destekli yenilikçi analiz ekosistemi.
 
 [AKILLI_TABELA_SISTEM_DOKUMANI_.md](https://github.com/user-attachments/files/27563979/AKILLI_TABELA_SISTEM_DOKUMANI_v2.1.md)
 
